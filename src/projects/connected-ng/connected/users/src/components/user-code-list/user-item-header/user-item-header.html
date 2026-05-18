@@ -1,3 +1,38 @@
-@if (user()) {
-  <div>Uporabnik {{ user()?.email }}</div>
+@if (user(); as u) {
+	<div class="list-item-border subtile">
+		<div class="d-grid" style="grid-template-columns: auto 1fr">
+			<div
+				class="status-dot"
+				[class.bg-info]="u.status === 1"
+				[class.bg-dark]="u.status === 2"
+			></div>
+			<div class="grid" style="--columns: 3">
+				<div class="display-value">
+					<div class="list-item-label" i18n="@@cn.user-item-header.email">
+						Username
+					</div>
+					<div class="list-item-title">{{ u.email }}</div>
+				</div>
+				<div class="display-value">
+					<div
+						class="list-item-label"
+						i18n="@@cn.user-item-header.first-name"
+					>
+						First name
+					</div>
+					<div class="list-item-title">{{ u.firstName }}</div>
+				</div>
+				<div class="display-value">
+					<div
+						class="list-item-label"
+						i18n="@@cn.user-item-header.last-name"
+					>
+						Last name
+					</div>
+					<div class="list-item-title">{{ u.lastName }}</div>
+				</div>
+			</div>
+		</div>
+		<mat-icon>arrow_drop_down</mat-icon>
+	</div>
 }

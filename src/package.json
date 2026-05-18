@@ -21,7 +21,8 @@
     "private": true,
     "peerDependencies": {
         "@connected-ng/core": "workspace:*",
-        "@connected-ng/components": "workspace:*"
+        "@connected-ng/components": "workspace:*",
+        "@angular/material": "*"
     },
     "dependencies": {
         "@angular/common": "^21.1.0",
