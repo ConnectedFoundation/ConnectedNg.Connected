@@ -1,0 +1,81 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+	"compileOnSave": false,
+	"compilerOptions": {
+		"paths": {
+			"@connected-ng/connected": [
+				"./projects/connected-ng/connected/src/public-api.ts"
+			],
+			"@connected-ng/connected/users": [
+				"./projects/connected-ng/connected/users/src/public-api.ts"
+			],
+			"@connected-ng/connected/permissions": [
+				"./projects/connected-ng/connected/permissions/src/public-api.ts"
+			],
+			"@connected-ng/connected/permission-management": [
+				"./projects/connected-ng/connected/permission-management/src/public-api.ts"
+			],
+			"@connected-ng/core": [
+				"../../ConnectedNg.Core/src/projects/connected-ng/core/src/public-api.ts"
+			],
+			"@connected-ng/core/authentication": [
+				"../../ConnectedNg.Core/src/projects/connected-ng/core/authentication/src/public-api.ts"
+			],
+			"@connected-ng/core/errors": [
+				"../../ConnectedNg.Core/src/projects/connected-ng/core/errors/src/public-api.ts"
+			],
+			"@connected-ng/components": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/src/public-api.ts"
+			],
+			"@connected-ng/components/code-lists": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/code-lists/src/public-api.ts"
+			],
+			"@connected-ng/components/code-lists/helpers": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/code-lists/helpers/src/public-api.ts"
+			],
+			"@connected-ng/components/dialogs": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/dialogs/src/public-api.ts"
+			],
+			"@connected-ng/components/forms": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/forms/src/public-api.ts"
+			],
+			"@connected-ng/components/indicators": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/indicators/src/public-api.ts"
+			],
+			"@connected-ng/components/navigation": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/navigation/src/public-api.ts"
+			],
+			"@connected-ng/components/notifications": [
+				"../../ConnectedNg.Components/src/projects/connected-ng/components/notifications/src/public-api.ts"
+			]
+		},
+		"strict": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"target": "ES2022",
+		"module": "preserve"
+	},
+	"angularCompilerOptions": {
+		"enableI18nLegacyMessageIdFormat": false,
+		"strictInjectionParameters": true,
+		"strictInputAccessModifiers": true,
+		"typeCheckHostBindings": true,
+		"strictTemplates": true
+	},
+	"files": [],
+	"references": [
+		{
+			"path": "./projects/connected-ng/connected/tsconfig.lib.json"
+		},
+		{
+			"path": "./projects/connected-ng/connected/tsconfig.spec.json"
+		}
+	]
+}
