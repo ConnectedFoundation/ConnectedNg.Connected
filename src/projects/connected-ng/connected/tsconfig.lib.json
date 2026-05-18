@@ -10,7 +10,21 @@
 		"types": [],
 		"paths": {
 			"@connected-ng/connected": ["../../../dist/connected-ng/connected"],
-			"@connected-ng/connected/*": ["../../../dist/connected-ng/connected/*"]
+			"@connected-ng/connected/*": [
+				"../../../dist/connected-ng/connected/*"
+			],
+			"@connected-ng/core": [
+				"../../../../../ConnectedNg.Core/src/dist/connected-ng/core"
+			],
+			"@connected-ng/core/*": [
+				"../../../../../ConnectedNg.Core/src/dist/connected-ng/core/*"
+			],
+			"@connected-ng/components": [
+				"../../../../../ConnectedNg.Components/src/dist/connected-ng/components"
+			],
+			"@connected-ng/components/*": [
+				"../../../../../ConnectedNg.Components/src/dist/connected-ng/components/*"
+			]
 		}
 	},
 	"include": [
