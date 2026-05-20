@@ -1,4 +1,3 @@
-/// <reference types="@angular/localize" />
 import { Component, computed, effect, inject, Injector, InputSignal, signal, WritableSignal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { CodeListActions, CodeListUpdateForm } from "@connected-ng/components/code-lists";
