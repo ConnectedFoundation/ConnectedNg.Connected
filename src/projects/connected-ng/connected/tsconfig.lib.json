@@ -7,7 +7,7 @@
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
-		"types": [],
+		"types": ["@angular/localize"],
 		"paths": {
 			"@connected-ng/connected": ["../../../dist/connected-ng/connected"],
 			"@connected-ng/connected/*": [
