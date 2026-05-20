@@ -1,3 +1,4 @@
+/// <reference types="@angular/localize" />
 import { Component, computed, effect, inject, Injector, InputSignal, signal, WritableSignal } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { CodeListActions, CodeListUpdateForm } from "@connected-ng/components/code-lists";
@@ -7,13 +8,21 @@ import { User } from "../../../../public-api";
 import { ActionDescriptionWithAction } from "@connected-ng/components";
 
 @Component({
-  selector: 'cn-user-update-form-fields',
-  imports: [ReactiveFormsModule, DynamicFormFieldComponent],
-  templateUrl: './user-update-form-fields.html',
-  styleUrl: './user-update-form-fields.scss',
+	selector: 'cn-user-update-form-fields',
+	imports: [ReactiveFormsModule, DynamicFormFieldComponent],
+	templateUrl: './user-update-form-fields.html',
+	styleUrl: './user-update-form-fields.scss',
 })
 export class UserUpdateFormFields extends CodeListUpdateForm<User> implements ActionsProviderContract {
-  firstName = this.field('firstName');
-  lastName = this.field('lastName');
-  email = this.field('email');
+	firstName = this.field('firstName');
+	lastName = this.field('lastName');
+	email = computed(() => {
+		let email = this.field('email')();
+		if (!email)
+			return;
+
+		email!.fieldConfig.label = $localize`:@@cn.user-update-form.email-label:Username`;
+
+		return email;
+	});
 }
