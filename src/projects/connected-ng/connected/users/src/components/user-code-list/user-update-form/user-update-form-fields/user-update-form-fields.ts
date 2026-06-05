@@ -13,8 +13,18 @@ import { ActionDescriptionWithAction } from "@connected-ng/components";
 	styleUrl: './user-update-form-fields.scss',
 })
 export class UserUpdateFormFields extends CodeListUpdateForm<User> implements ActionsProviderContract {
-	firstName = this.field('firstName');
-	lastName = this.field('lastName');
+	firstName = computed(() => {
+		const firstName = this.field('firstName')();
+		if (firstName)
+			firstName.fieldConfig.label = $localize`:@@user.first-name:First name`;
+		return firstName;
+	});
+	lastName = computed(() => {
+		const lastName = this.field('lastName')();
+		if (lastName)
+			lastName.fieldConfig.label = $localize`:@@user.last-name:Last name`;
+		return lastName;
+	});
 	email = computed(() => {
 		let email = this.field('email')();
 		if (!email)

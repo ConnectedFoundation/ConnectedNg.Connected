@@ -31,7 +31,7 @@ export class UserCodeList extends CodeListBase implements OnDestroy {
 			key: UserCodeList.routePattern.pattern,
 			icon: 'category',
 			data: {},
-			title: 'Users',
+			title: $localize`:@@cn.users.list-header:Users`,
 			childPages: [
 				insertForm,
 				updateForm

@@ -21,9 +21,9 @@ export class UserInsertForm extends CodeListInsertFormBase<InsertUserDto> {
   static readonly routePattern = routePattern('new');
 
   static fieldLocalizer = localizeFields({
-    'firstName': () => 'First name',
-    'lastName': () => 'Last name',
-    'email': () => 'Username'
+    'firstName': () => $localize`:@@user.first-name:First name`,
+    'lastName': () => $localize`:@@user.last-name:Last name`,
+    'email': () => $localize`:@@cn.user-update-form.email-label:Username`
   });
 
   /**
@@ -41,12 +41,12 @@ export class UserInsertForm extends CodeListInsertFormBase<InsertUserDto> {
 
     return {
       component: UserInsertFormFields,
-      title: 'New user',
+      title: $localize`:@@user.new-title:New user`,
       key: UserInsertForm.routePattern.pattern,
       pattern: UserInsertForm.routePattern.pattern,
       data: {
         serviceOperation: service.insert,
-        title: 'New user',
+        title: $localize`:@@user.new-title:New user`,
         formInterceptors: formInterceptors
       },
       pageFactory: (params) => UserInsertForm.fromParams(params, injector)

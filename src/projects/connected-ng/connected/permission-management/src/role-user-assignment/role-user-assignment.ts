@@ -23,7 +23,7 @@ export class RoleUserAssignment implements ActionsProviderContract {
       component: RoleUserAssignment,
       key: RoleUserAssignment.routePattern.pattern,
       pattern: RoleUserAssignment.routePattern.pattern,
-      title: 'Users',
+      title: $localize`:@@cn.users.list-header:Users`,
       data: { roleId },
       pageFactory: (_p) => RoleUserAssignment.fromParams(params, injector)
     };
@@ -80,8 +80,8 @@ export class RoleUserAssignment implements ActionsProviderContract {
   pageActions = computed<ActionDescriptionWithAction[]>(() => [
     CodeListActions.backAction(() => { this.navigationContext.back(); }),
     {
-      label: 'Save',
-      description: 'Save current state',
+      label: $localize`:@@code-list.action.save:Save`,
+      description: $localize`:@@assignment.save-description:Save current state`,
       icon: 'check_circle',
       action: () => { this.save(); }
     }

@@ -22,9 +22,9 @@ export class UserUpdateForm extends CodeListUpdateFormBase<UpdateUserDto, User> 
   static readonly routePattern = routePattern('edit/:id');
 
   static fieldLocalizer = localizeFields({
-    'firstName': () => 'First name',
-    'lastName': () => 'Last name',
-    'email': () => 'Username'
+    'firstName': () => $localize`:@@user.first-name:First name`,
+    'lastName': () => $localize`:@@user.last-name:Last name`,
+    'email': () => $localize`:@@cn.user-update-form.email-label:Username`
   });
   /**
    * Factory method to create page info from URL parameters.
@@ -48,7 +48,7 @@ export class UserUpdateForm extends CodeListUpdateFormBase<UpdateUserDto, User> 
     return {
       component: UserUpdateFormFields,
       headerComponent: UserItemHeader,
-      title: 'Edit user',
+      title: $localize`:@@user.edit-title:Edit user`,
       key: UserUpdateForm.routePattern.build({ id }),
       pattern: UserUpdateForm.routePattern.pattern,
       data: (instance: UserUpdateFormFields) => ({
@@ -64,8 +64,8 @@ export class UserUpdateForm extends CodeListUpdateFormBase<UpdateUserDto, User> 
             action: () => instance.navigationContext.push(r.factory(params, injector))
           })),
           {
-            label: 'Save',
-            description: 'Save the item',
+            label: $localize`:@@code-list.action.save:Save`,
+            description: $localize`:@@user.save-description:Save changes`,
             icon: 'check_circle',
             action: () => instance.onSubmit()
           }
@@ -105,8 +105,8 @@ export class UserUpdateForm extends CodeListUpdateFormBase<UpdateUserDto, User> 
             action: () => this.navigationContext.push(r.factory({ id: userId.toString() }, this.injector))
           })),
           {
-            label: 'Save',
-            description: 'Save the item',
+            label: $localize`:@@code-list.action.save:Save`,
+            description: $localize`:@@user.save-description:Save changes`,
             icon: 'check_circle',
             action: () => this.onSubmit()
           }

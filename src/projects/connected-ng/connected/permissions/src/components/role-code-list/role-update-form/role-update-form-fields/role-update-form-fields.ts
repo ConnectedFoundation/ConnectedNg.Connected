@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CodeListUpdateForm } from '@connected-ng/components/code-lists';
 import { DynamicFormFieldComponent } from '@connected-ng/components/forms';
@@ -13,6 +13,16 @@ import { RoleSelectBox } from '../../role-select-box/role-select-box';
   styleUrl: './role-update-form-fields.scss',
 })
 export class RoleUpdateFormFields extends CodeListUpdateForm<UpdateRoleDto> implements ActionsProviderContract {
-  name = this.field('name');
-  parent = this.field('parent');
+  name = computed(() => {
+    const name = this.field('name')();
+    if (name)
+      name.fieldConfig.label = $localize`:@@role.name:Name`;
+    return name;
+  });
+  parent = computed(() => {
+    const parent = this.field('parent')();
+    if (parent)
+      parent.fieldConfig.label = $localize`:@@role.parent:Parent role`;
+    return parent;
+  });
 }

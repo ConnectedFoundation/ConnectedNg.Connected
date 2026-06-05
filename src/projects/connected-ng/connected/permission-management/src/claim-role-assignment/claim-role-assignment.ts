@@ -22,7 +22,7 @@ export class ClaimRoleAssignment implements ActionsProviderContract {
       component: ClaimRoleAssignment,
       key: ClaimRoleAssignment.routePattern.pattern,
       pattern: ClaimRoleAssignment.routePattern.pattern,
-      title: 'Roles',
+      title: $localize`:@@cn.roles.list-header:Roles`,
       data: { claimValue },
       pageFactory: (_p) => ClaimRoleAssignment.fromParams(params, injector)
     };
@@ -78,8 +78,8 @@ export class ClaimRoleAssignment implements ActionsProviderContract {
   pageActions = computed<ActionDescriptionWithAction[]>(() => [
     CodeListActions.backAction(() => { this.navigationContext.back(); }),
     {
-      label: 'Save',
-      description: 'Save current state',
+      label: $localize`:@@code-list.action.save:Save`,
+      description: $localize`:@@assignment.save-description:Save current state`,
       icon: 'check_circle',
       action: () => { this.save(); }
     }

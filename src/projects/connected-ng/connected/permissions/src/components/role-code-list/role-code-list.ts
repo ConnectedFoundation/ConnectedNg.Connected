@@ -32,7 +32,7 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 			key: RoleCodeList.routePattern.pattern,
 			icon: 'manage_accounts',
 			data: {},
-			title: 'Roles',
+			title: $localize`:@@cn.roles.list-header:Roles`,
 			childPages: [
 				insertForm,
 				updateForm

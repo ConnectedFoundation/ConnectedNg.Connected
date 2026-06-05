@@ -19,8 +19,8 @@ export class RoleUpdateForm extends CodeListUpdateFormBase<UpdateRoleDto, Role> 
   static readonly routePattern = routePattern('edit/:id');
 
   static fieldLocalizer = localizeFields({
-    'name': () => 'Name',
-    'parent': () => 'Parent role',
+    'name': () => $localize`:@@role.name:Name`,
+    'parent': () => $localize`:@@role.parent:Parent role`,
   });
 
   static fromParams(params: Record<string, string>, injector: Injector): StackPageInfo<unknown> {
@@ -42,7 +42,7 @@ export class RoleUpdateForm extends CodeListUpdateFormBase<UpdateRoleDto, Role> 
     return {
       component: RoleUpdateFormFields,
       headerComponent: RoleItemHeader,
-      title: 'Edit role',
+      title: $localize`:@@role.edit-title:Edit role`,
       key: RoleUpdateForm.routePattern.build({ id }),
       pattern: RoleUpdateForm.routePattern.pattern,
       data: registrations.length > 0
@@ -59,8 +59,8 @@ export class RoleUpdateForm extends CodeListUpdateFormBase<UpdateRoleDto, Role> 
               action: () => instance.navigationContext.push(r.factory(params, injector))
             })),
             {
-              label: 'Save',
-              description: 'Save the item',
+              label: $localize`:@@code-list.action.save:Save`,
+              description: $localize`:@@user.save-description:Save changes`,
               icon: 'check_circle',
               action: () => instance.onSubmit()
             }

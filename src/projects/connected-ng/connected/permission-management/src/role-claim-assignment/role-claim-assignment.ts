@@ -23,7 +23,7 @@ export class RoleClaimAssignment implements ActionsProviderContract {
       component: RoleClaimAssignment,
       key: RoleClaimAssignment.routePattern.pattern,
       pattern: RoleClaimAssignment.routePattern.pattern,
-      title: 'Claims',
+      title: $localize`:@@assignment.claims:Claims`,
       data: { roleId },
       pageFactory: (_p) => RoleClaimAssignment.fromParams(params, injector)
     };
@@ -74,8 +74,8 @@ export class RoleClaimAssignment implements ActionsProviderContract {
   pageActions = computed<ActionDescriptionWithAction[]>(() => [
     CodeListActions.backAction(() => { this.navigationContext.back(); }),
     {
-      label: 'Save',
-      description: 'Save current state',
+      label: $localize`:@@code-list.action.save:Save`,
+      description: $localize`:@@assignment.save-description:Save current state`,
       icon: 'check_circle',
       action: () => { this.save(); }
     }

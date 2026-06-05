@@ -24,7 +24,7 @@ export class UserClaimAssignment implements ActionsProviderContract {
       component: UserClaimAssignment,
       key: UserClaimAssignment.routePattern.pattern,
       pattern: UserClaimAssignment.routePattern.pattern,
-      title: 'Claims',
+      title: $localize`:@@assignment.claims:Claims`,
       data: { userId },
       pageFactory: (_p) => UserClaimAssignment.fromParams(params, injector)
     };
@@ -75,8 +75,8 @@ export class UserClaimAssignment implements ActionsProviderContract {
   pageActions = computed<ActionDescriptionWithAction[]>(() => [
     CodeListActions.backAction(() => { this.navigationContext.back(); }),
     {
-      label: 'Save',
-      description: 'Save current state',
+      label: $localize`:@@code-list.action.save:Save`,
+      description: $localize`:@@assignment.save-description:Save current state`,
       icon: 'check_circle',
       action: () => { this.save(); }
     }

@@ -18,8 +18,8 @@ export class RoleInsertForm extends CodeListInsertFormBase<InsertRoleDto> {
   static readonly routePattern = routePattern('new');
 
   static fieldLocalizer = localizeFields({
-    'name': () => 'Name',
-    'parent': () => 'Parent role',
+    'name': () => $localize`:@@role.name:Name`,
+    'parent': () => $localize`:@@role.parent:Parent role`,
   });
 
   static fromParams(params: Record<string, string>, injector: Injector): StackPageInfo<unknown> {
@@ -33,12 +33,12 @@ export class RoleInsertForm extends CodeListInsertFormBase<InsertRoleDto> {
 
     return {
       component: RoleInsertFormFields,
-      title: 'New role',
+      title: $localize`:@@role.new-title:New role`,
       key: RoleInsertForm.routePattern.pattern,
       pattern: RoleInsertForm.routePattern.pattern,
       data: {
         serviceOperation: service.insert,
-        title: 'New role',
+        title: $localize`:@@role.new-title:New role`,
         formInterceptors,
       },
       pageFactory: (params) => RoleInsertForm.fromParams(params, injector)

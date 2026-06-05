@@ -14,22 +14,22 @@ export function providePermissionManagement(): EnvironmentProviders {
     provideChildPage(UserUpdateFormFields, {
       factory: (params: Record<string, string>, injector: Injector) => UserRoleAssignment.fromParams(params, injector),
       routePattern: UserRoleAssignment.routePattern.pattern,
-      action: { label: 'Roles', description: 'Manage user roles' }
+      action: { label: $localize`:@@cn.roles.list-header:Roles`, description: $localize`:@@permission.manage-user-roles:Manage user roles` }
     }),
     provideChildPage(UserUpdateFormFields, {
       factory: (params: Record<string, string>, injector: Injector) => UserClaimAssignment.fromParams(params, injector),
       routePattern: UserClaimAssignment.routePattern.pattern,
-      action: { label: 'Claims', description: 'Manage user claims' }
+      action: { label: $localize`:@@assignment.claims:Claims`, description: $localize`:@@permission.manage-user-claims:Manage user claims` }
     }),
     provideChildPage(RoleUpdateFormFields, {
       factory: (params: Record<string, string>, injector: Injector) => RoleUserAssignment.fromParams(params, injector),
       routePattern: RoleUserAssignment.routePattern.pattern,
-      action: { label: 'Users', description: 'Manage role users' }
+      action: { label: $localize`:@@cn.users.list-header:Users`, description: $localize`:@@permission.manage-role-users:Manage role users` }
     }),
     provideChildPage(RoleUpdateFormFields, {
       factory: (params: Record<string, string>, injector: Injector) => RoleClaimAssignment.fromParams(params, injector),
       routePattern: RoleClaimAssignment.routePattern.pattern,
-      action: { label: 'Claims', description: 'Manage role claims' }
+      action: { label: $localize`:@@assignment.claims:Claims`, description: $localize`:@@permission.manage-role-claims:Manage role claims` }
     })
   ]);
 }

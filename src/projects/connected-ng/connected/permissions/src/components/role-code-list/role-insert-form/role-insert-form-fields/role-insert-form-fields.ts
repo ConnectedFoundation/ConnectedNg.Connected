@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { CodeListInsertForm } from '@connected-ng/components/code-lists';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DynamicFormFieldComponent } from '@connected-ng/components/forms';
@@ -13,6 +13,16 @@ import { RoleSelectBox } from '../../role-select-box/role-select-box';
   styleUrl: './role-insert-form-fields.scss',
 })
 export class RoleInsertFormFields extends CodeListInsertForm<InsertRoleDto> implements ActionsProviderContract {
-  name = this.field('name');
-  parent = this.field('parent');
+  name = computed(() => {
+    const name = this.field('name')();
+    if (name)
+      name.fieldConfig.label = $localize`:@@role.name:Name`;
+    return name;
+  });
+  parent = computed(() => {
+    const parent = this.field('parent')();
+    if (parent)
+      parent.fieldConfig.label = $localize`:@@role.parent:Parent role`;
+    return parent;
+  });
 }
