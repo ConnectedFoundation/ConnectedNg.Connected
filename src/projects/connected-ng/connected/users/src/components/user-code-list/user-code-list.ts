@@ -1,4 +1,4 @@
-import { Component, inject, Injector, OnDestroy, signal } from '@angular/core';
+import { Component, computed, inject, Injector, OnDestroy, signal } from '@angular/core';
 import { routePattern } from '@connected-ng/core';
 import { CodeListActions, CodeListActionsComponent, CodeListBase, CodeListList, CodeListStackPageInfo } from '@connected-ng/components/code-lists'
 import { UserCodeListHeader } from './user-code-list-header/user-code-list-header';
@@ -43,6 +43,9 @@ export class UserCodeList extends CodeListBase implements OnDestroy {
 	private childPageProvider = inject(ChildPageProviderService, { optional: true });
 
 	items = signal<User[]>([]);
+	readonly sortedItems = computed(() =>
+		[...this.items()].sort((a, b) => (a.email ?? '').localeCompare(b.email ?? ''))
+	);
 
 	leftActions(item: User) {
 		const registrations = this.childPageProvider?.getRegistrations(UserUpdateFormFields) ?? [];

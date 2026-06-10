@@ -1,4 +1,4 @@
-import { Component, inject, Injector, OnDestroy, signal } from '@angular/core';
+import { Component, computed, inject, Injector, OnDestroy, signal } from '@angular/core';
 import { routePattern } from '@connected-ng/core';
 import { CodeListActions, CodeListActionsComponent, CodeListBase, CodeListList, CodeListStackPageInfo } from '@connected-ng/components/code-lists';
 import { RoleCodeListHeader } from './role-code-list-header/role-code-list-header';
@@ -44,6 +44,9 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 	private childPageProvider = inject(ChildPageProviderService, { optional: true });
 
 	items = signal<Role[]>([]);
+	readonly sortedItems = computed(() =>
+		[...this.items()].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+	);
 
 	leftActions(item: Role) {
 		const registrations = this.childPageProvider?.getRegistrations(RoleUpdateFormFields) ?? [];

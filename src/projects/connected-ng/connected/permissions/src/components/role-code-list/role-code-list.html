@@ -1,8 +1,12 @@
 <cn-code-list-list
-	[items]="items()"
+	[items]="sortedItems()"
 	[itemTemplate]="viewTemplate"
 	[itemActionsTemplate]="detailTemplate"
 	[codeListActions]="codeListActions()"
+	[paginate]="true"
+	[pageSize]="20" 
+	[pageSizeOptions]="[5, 10, 25]"
+	[hidePageSize]="true"
 ></cn-code-list-list>
 
 <ng-template #detailTemplate let-item>
