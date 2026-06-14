@@ -46,6 +46,10 @@ export class UserCodeList extends CodeListBase implements OnDestroy {
 	readonly sortedItems = computed(() =>
 		[...this.items()].sort((a, b) => (a.email ?? '').localeCompare(b.email ?? ''))
 	);
+	readonly filter = (item: User, query: string) =>
+		(item.email ?? '').toLowerCase().includes(query) ||
+		(item.firstName ?? '').toLowerCase().includes(query) ||
+		(item.lastName ?? '').toLowerCase().includes(query);
 
 	leftActions(item: User) {
 		const registrations = this.childPageProvider?.getRegistrations(UserUpdateFormFields) ?? [];

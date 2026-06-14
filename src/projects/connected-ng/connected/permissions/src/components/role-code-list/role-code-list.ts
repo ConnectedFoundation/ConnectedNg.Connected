@@ -47,6 +47,9 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 	readonly sortedItems = computed(() =>
 		[...this.items()].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
 	);
+	readonly filter = (item: Role, query: string) =>
+		(item.name ?? '').toLowerCase().includes(query);
+
 
 	leftActions(item: Role) {
 		const registrations = this.childPageProvider?.getRegistrations(RoleUpdateFormFields) ?? [];
