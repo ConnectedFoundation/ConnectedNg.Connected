@@ -3,7 +3,7 @@ import { UpdateRoleDto, Role } from '../../../services/roles/dtos/role-dtos';
 import { RoleService } from '../../../services/roles/role-service';
 import { CodeListActions, CodeListUpdateForm, CodeListUpdateFormBase } from '@connected-ng/components/code-lists';
 import { hideField, localizeFields } from '@connected-ng/components/code-lists/helpers';
-import { FormGenerationInterceptors, FormResult } from '@connected-ng/components/forms';
+import { DynamicFormMetadata, FormGenerationInterceptors, FormResult } from '@connected-ng/components/forms';
 import { ChildPageProviderService, StackComponent, StackPageInfo } from '@connected-ng/components/navigation';
 import { routePattern } from '@connected-ng/core';
 import { RoleUpdateFormFields } from './role-update-form-fields/role-update-form-fields';
@@ -31,7 +31,10 @@ export class RoleUpdateForm extends CodeListUpdateFormBase<UpdateRoleDto, Role> 
         hideField('id'),
         hideField('status'),
         this.fieldLocalizer,
-      ]
+      ],
+      afterGeneration: (metadata: DynamicFormMetadata) => {
+        metadata.formGroup.get('parent')?.disable();
+      },
     };
 
     const service = injector.get(RoleService);

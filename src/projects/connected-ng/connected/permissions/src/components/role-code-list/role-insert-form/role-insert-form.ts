@@ -1,9 +1,9 @@
 import { Component, computed, inject, Injector } from '@angular/core';
 import { CodeListInsertForm, CodeListInsertFormBase } from '@connected-ng/components/code-lists';
-import { localizeFields } from '@connected-ng/components/code-lists/helpers';
-import { routePattern } from '@connected-ng/core';
+import { hideField, localizeFields } from '@connected-ng/components/code-lists/helpers';
+import { routePattern, Status } from '@connected-ng/core';
 import { StackComponent, StackPageInfo } from '@connected-ng/components/navigation';
-import { FormGenerationInterceptors, FormResult } from '@connected-ng/components/forms';
+import { DynamicFormMetadata, FormGenerationInterceptors, FormResult } from '@connected-ng/components/forms';
 import { RoleInsertFormFields } from './role-insert-form-fields/role-insert-form-fields';
 import { InsertRoleDto } from '../../../services/roles/dtos/role-dtos';
 import { RoleService } from '../../../services/roles/role-service';
@@ -27,8 +27,12 @@ export class RoleInsertForm extends CodeListInsertFormBase<InsertRoleDto> {
 
     const formInterceptors: FormGenerationInterceptors = {
       fieldInterceptors: [
+        hideField('status'),
         this.fieldLocalizer,
-      ]
+      ],
+      afterGeneration: (metadata: DynamicFormMetadata) => {
+        metadata.formGroup.get('status')?.setValue(Status.Enabled);
+      },
     };
 
     return {
@@ -48,10 +52,6 @@ export class RoleInsertForm extends CodeListInsertFormBase<InsertRoleDto> {
   service = inject(RoleService);
 
   pageInfo = computed<StackPageInfo<CodeListInsertForm<InsertRoleDto>>>(() => {
-    const formInterceptors: FormGenerationInterceptors = {
-      fieldInterceptors: [RoleInsertForm.fieldLocalizer]
-    };
-
     return {
       component: RoleInsertFormFields,
       key: 'new',
@@ -59,8 +59,12 @@ export class RoleInsertForm extends CodeListInsertFormBase<InsertRoleDto> {
         serviceOperation: this.service.insert,
         formInterceptors: {
           fieldInterceptors: [
+            hideField('status'),
             RoleInsertForm.fieldLocalizer,
-          ]
+          ],
+          afterGeneration: (metadata: DynamicFormMetadata) => {
+            metadata.formGroup.get('status')?.setValue(Status.Enabled);
+          },
         },
       },
       outputs: {

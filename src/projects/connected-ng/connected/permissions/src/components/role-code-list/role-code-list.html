@@ -21,9 +21,11 @@
 <ng-template #viewTemplate let-item>
 	<div class="d-flex">
 		<div
-			class="status-dot"
-			[class.bg-info]="item.status === 1"
-			[class.bg-dark]="item.status === 2"
+		class="status-dot"
+		[class.bg-info]="item.status === 1"
+		[class.bg-dark]="item.status === 2"
+		[matTooltip]="statusLabel(item.status)"
+		matTooltipPosition="right"
 		></div>
 		<div class="display-value">
 			<div class="list-item-label" i18n="@@cn.role-list.name-label">

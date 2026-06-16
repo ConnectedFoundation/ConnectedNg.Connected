@@ -9,16 +9,24 @@ import { RoleUpdateForm } from './role-update-form/role-update-form';
 import { ChildPageProviderService, ChildPageRegistration, POP_NAVIGATION } from '@connected-ng/components/navigation';
 import { RoleUpdateFormFields } from './role-update-form/role-update-form-fields/role-update-form-fields';
 import { Subscription } from 'rxjs';
+import { MatTooltip } from '@angular/material/tooltip';
+import { NotificationService } from '@connected-ng/components/notifications';
+import { FormResult } from '@connected-ng/components/forms';
 
 @Component({
 	selector: 'cn-role-code-list',
-	imports: [CodeListList, CodeListActionsComponent],
+	imports: [CodeListList, CodeListActionsComponent, MatTooltip],
 	templateUrl: './role-code-list.html',
 	styleUrl: './role-code-list.scss',
 })
 export class RoleCodeList extends CodeListBase implements OnDestroy {
 	static readonly routePattern = routePattern('roles');
 
+	readonly statusLabels: Record<number, string> = {
+		1: $localize`:@@role.status-enabled-label:Enabled`,
+		2: $localize`:@@role.status-disabled-label:Disabled`,
+	};
+	
 	static fromParams(injector: Injector): CodeListStackPageInfo {
 		let insertForm = RoleInsertForm.fromParams({}, injector);
 		insertForm.outputs = { formClose: POP_NAVIGATION };
@@ -41,6 +49,7 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 	}
 
 	roleService = inject(RoleService);
+	private readonly notificationService = inject(NotificationService);
 	private childPageProvider = inject(ChildPageProviderService, { optional: true });
 
 	items = signal<Role[]>([]);
@@ -73,7 +82,17 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 		return [
 			CodeListActions.getStatusChangeAction(
 				item,
-				(i: unknown) => this.roleService.update(i as Role).subscribe()
+				(i: unknown) => this.roleService.update(i as Role).subscribe({
+					next: () => {
+						const status = (i as Role).status;
+						this.notificationService.success(
+							status === 1
+								? $localize`:@@role.status-enabled:Role was successfully enabled.`
+								: $localize`:@@role.status-disabled:Role was successfully disabled.`
+						);
+					},
+					error: () => this.notificationService.error($localize`:@@role.status-change-error:Error changing role status.`)
+				})
 			)
 		];
 	}
@@ -87,13 +106,25 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 
 	navigateToInsert() {
 		const insertPage = RoleInsertForm.fromParams({}, this.injector);
-		insertPage.outputs = { formClose: () => this.navigationContext.back() };
+		insertPage.outputs = {
+			formClose: (result: FormResult) => {
+				if (result?.success) this.notificationService.success($localize`:@@role.insert-success:Role was successfully added.`);
+				this.navigationContext.back();
+			},
+			formError: () => this.notificationService.error($localize`:@@role.insert-error:Error adding role.`)
+		};
 		this.navigationContext.push(insertPage);
 	}
 
 	navigateToItem(item: Role) {
 		const updatePage = RoleUpdateForm.fromParams({ id: item.id.toString() }, this.injector);
-		updatePage.outputs = { formClose: () => this.navigationContext.back() };
+		updatePage.outputs = {
+			formClose: (result: FormResult) => {
+				if (result?.success) this.notificationService.success($localize`:@@role.update-success:Role was successfully updated.`);
+				this.navigationContext.back();
+			},
+			formError: () => this.notificationService.error($localize`:@@role.update-error:Error updating role.`)
+		};
 		this.navigationContext.push(updatePage);
 	}
 
@@ -102,6 +133,10 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 		const updatePage = RoleUpdateForm.fromParams({ id: item.id.toString() }, this.injector);
 		updatePage.outputs = { formClose: () => this.navigationContext.pop() };
 		this.navigationContext.push(updatePage, childPage);
+	}
+
+	statusLabel(status: number): string {
+		return this.statusLabels[status] ?? '';
 	}
 
 	override ngOnInit() {
