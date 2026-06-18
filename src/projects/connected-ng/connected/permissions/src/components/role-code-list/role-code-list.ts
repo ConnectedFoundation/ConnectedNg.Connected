@@ -142,7 +142,7 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 	override ngOnInit() {
 		super.ngOnInit();
 		this.subscriptions.add(
-			this.roleService.queryAndSubscribe$().subscribe(items => this.items.set(items))
+			this.roleService.queryAndSubscribe$().subscribe(items => this.items.set(items.filter(r => r.id > 0)))
 		);
 	}
 
