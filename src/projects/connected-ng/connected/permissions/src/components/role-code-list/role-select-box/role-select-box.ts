@@ -3,7 +3,7 @@ import { NG_VALUE_ACCESSOR, FormControl, ReactiveFormsModule } from '@angular/fo
 import { CodeListSelectBox } from '@connected-ng/components/code-lists';
 import { FormBase, FormResult } from '@connected-ng/components/forms';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { InsertRoleDto, Role } from '../../../services/roles/dtos/role-dtos';
+import { InsertRoleDto, Role, RoleStatus } from '../../../services/roles/dtos/role-dtos';
 import { RoleInsertForm } from '../role-insert-form/role-insert-form';
 import { RoleService } from '../../../services/roles/role-service';
 
@@ -37,7 +37,7 @@ export class RoleSelectBox implements OnDestroy {
 
   ngOnInit() {
     this.subscriptions.add(
-      this.service.queryAndSubscribe$().subscribe(items => this.items.set(items.filter(r => r.id > 0)))
+      this.service.queryAndSubscribe$().subscribe(items => this.items.set(items.filter(r => r.id > 0 && r.status === RoleStatus.Enabled)))
     );
   }
 
