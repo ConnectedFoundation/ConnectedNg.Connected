@@ -37,7 +37,7 @@ export class RoleSelectBox implements OnDestroy {
 
   ngOnInit() {
     this.subscriptions.add(
-      this.service.queryAndSubscribe$().subscribe(items => this.items.set(items))
+      this.service.queryAndSubscribe$().subscribe(items => this.items.set(items.filter(r => r.id > 0)))
     );
   }
 
