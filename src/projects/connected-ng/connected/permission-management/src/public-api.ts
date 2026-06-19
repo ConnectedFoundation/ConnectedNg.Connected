@@ -1,3 +1,4 @@
+/// <reference types="@angular/localize" />
 export * from './user-role-assignment/user-role-assignment';
 export * from './role-user-assignment/role-user-assignment';
 export * from './role-claim-assignment/role-claim-assignment';

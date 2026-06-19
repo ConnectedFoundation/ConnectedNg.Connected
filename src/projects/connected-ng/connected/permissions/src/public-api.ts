@@ -1,3 +1,4 @@
+/// <reference types="@angular/localize" />
 export { RoleService, ROLE_SERVICE_CONFIG } from './services/roles/role-service';
 export * from './services/roles/dtos/role-dtos';
 export { MembershipService, MEMBERSHIP_SERVICE_CONFIG } from './services/membership/membership-service';

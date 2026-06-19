@@ -1,3 +1,4 @@
+/// <reference types="@angular/localize" />
 // @connected-ng/connected primary entry point
 // Feature modules are exposed as secondary entry points:
 //   @connected-ng/connected/users

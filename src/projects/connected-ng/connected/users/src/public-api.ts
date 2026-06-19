@@ -1,3 +1,4 @@
+/// <reference types="@angular/localize" />
 export { UserService, USER_SERVICE_CONFIG } from './services/users/user-service';
 export * from './services/users/dtos/user-dtos';
 export * from './components/user-code-list/user-code-list';
