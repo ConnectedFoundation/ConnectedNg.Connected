@@ -6,3 +6,4 @@ export * from './user-claim-assignment/user-claim-assignment';
 export * from './claim-role-assignment/claim-role-assignment';
 export * from './claim-user-assignment/claim-user-assignment';
 export * from './provide-permission-management';
+export * from './claim-authorization/claim-authorization-structural-directive'

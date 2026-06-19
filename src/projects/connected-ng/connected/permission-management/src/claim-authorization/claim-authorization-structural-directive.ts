@@ -22,7 +22,7 @@ export interface ClaimRequirement {
 	standalone: true,
 })
 export class ClaimAuthorizationStructuralDirective implements OnDestroy {
-	claimAuthorization = input<ClaimRequirement[]>([]);
+	claimAuthorization = input.required<ClaimRequirement[]>();
 	claimAuthorizationMode = input<'hide' | 'disable'>('hide');
 	claimAuthorizationAdditionalChecks = input<Array<() => boolean>>([]);
 	claimAuthorizationUnlockHandler = input<(() => void) | undefined>(undefined);
