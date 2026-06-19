@@ -89,6 +89,8 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 		if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
 
 		node.classList.toggle('claim-locked', disabled);
+		node.classList.toggle('disabled', disabled);
+		node.classList.toggle('read-only', disabled);
 
 		const interactive = 'button, input, select, textarea';
 		if (node.matches?.(interactive)) (node as HTMLInputElement).disabled = disabled;
