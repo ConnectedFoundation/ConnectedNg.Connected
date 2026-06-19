@@ -4,6 +4,7 @@ export { MembershipService, MEMBERSHIP_SERVICE_CONFIG } from './services/members
 export * from './services/membership/dtos/membership-dtos';
 export { ClaimService, CLAIM_SERVICE_CONFIG } from './services/claims/claim-service';
 export { ClaimSchemaService, CLAIM_SCHEMA_SERVICE_CONFIG } from './services/claims/claims-schema-service';
+export { ClaimExtensionsService, CLAIM_EXTENSIONS_SERVICE_CONFIG } from './services/claims/claim-extensions-service';
 export * from './services/claims/dtos/claim-dtos';
 export * from './components/role-code-list/role-code-list';
 export * from './components/role-code-list/role-update-form/role-update-form-fields/role-update-form-fields';

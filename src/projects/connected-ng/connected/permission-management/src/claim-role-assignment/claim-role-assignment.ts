@@ -8,112 +8,112 @@ import { Claim, ClaimService, CLAIM_UNDEFINED, RoleSelectList, RoleService, Role
 import { firstValueFrom, from } from 'rxjs';
 
 @Component({
-  selector: 'cn-claim-role-assignment',
-  imports: [RoleSelectList, BusyIndicatorStructuralDirective],
-  templateUrl: './claim-role-assignment.html',
-  styleUrl: './claim-role-assignment.scss',
+	selector: 'cn-claim-role-assignment',
+	imports: [RoleSelectList, BusyIndicatorStructuralDirective],
+	templateUrl: './claim-role-assignment.html',
+	styleUrl: './claim-role-assignment.scss',
 })
 export class ClaimRoleAssignment implements ActionsProviderContract {
-  static readonly routePattern = routePattern('roles');
+	static readonly routePattern = routePattern('roles');
 
-  static fromParams(params: Record<string, string>, injector: Injector): StackPageInfo<unknown> {
-    const claimValue = params['id'];
-    return {
-      component: ClaimRoleAssignment,
-      key: ClaimRoleAssignment.routePattern.pattern,
-      pattern: ClaimRoleAssignment.routePattern.pattern,
-      title: $localize`:@@cn.roles.list-header:Roles`,
-      data: { claimValue },
-      pageFactory: (_p) => ClaimRoleAssignment.fromParams(params, injector)
-    };
-  }
+	static fromParams(params: Record<string, string>, injector: Injector): StackPageInfo<unknown> {
+		const claimValue = params['id'];
+		return {
+			component: ClaimRoleAssignment,
+			key: ClaimRoleAssignment.routePattern.pattern,
+			pattern: ClaimRoleAssignment.routePattern.pattern,
+			title: $localize`:@@cn.roles.list-header:Roles`,
+			data: { claimValue },
+			pageFactory: (_p) => ClaimRoleAssignment.fromParams(params, injector)
+		};
+	}
 
-  claimValue = input<string>();
+	claimValue = input<string>();
 
-  private navigationContext = inject(StackNavigationContext);
-  private roleService = inject(RoleService);
-  private claimService = inject(ClaimService);
-  private busyService = inject(BusyService);
+	private navigationContext = inject(StackNavigationContext);
+	private roleService = inject(RoleService);
+	private claimService = inject(ClaimService);
+	private busyService = inject(BusyService);
 
-  readonly busyKey = 'claim-role-assignment-save';
-  readonly loadKey = 'claim-role-assignment-load';
+	readonly busyKey = 'claim-role-assignment-save';
+	readonly loadKey = 'claim-role-assignment-load';
 
-  loaded = signal(false);
-  selectedRoleIds = signal<number[]>([]);
+	loaded = signal(false);
+	selectedRoleIds = signal<number[]>([]);
 
-  private allRoles: Role[] = [];
-  private originalClaims: Claim[] = [];
+	private allRoles: Role[] = [];
+	private originalClaims: Claim[] = [];
 
-  constructor() {
-    effect(() => {
-      const claimValue = this.claimValue();
-      if (!claimValue) return;
-      this.load(claimValue);
-    });
-  }
+	constructor() {
+		effect(() => {
+			const claimValue = this.claimValue();
+			if (!claimValue) return;
+			this.load(claimValue);
+		});
+	}
 
-  private async load(claimValue: string) {
-    this.loaded.set(false);
-    this.busyService.setBusy(this.loadKey, true);
-    try {
-      const [roles, claims] = await Promise.all([
-        firstValueFrom(this.roleService.query()),
-        firstValueFrom(this.claimService.query({ schema: 'role', entity: CLAIM_UNDEFINED, entityId: CLAIM_UNDEFINED }))
-      ]);
-      this.allRoles = roles ?? [];
-      this.originalClaims = (claims ?? []).filter(c => c.value === claimValue);
+	private async load(claimValue: string) {
+		this.loaded.set(false);
+		this.busyService.setBusy(this.loadKey, true);
+		try {
+			const [roles, claims] = await Promise.all([
+				firstValueFrom(this.roleService.query()),
+				firstValueFrom(this.claimService.query({ schemas: ['role'], entities: [CLAIM_UNDEFINED], entityIds: [CLAIM_UNDEFINED] }))
+			]);
+			this.allRoles = roles ?? [];
+			this.originalClaims = (claims ?? []).filter(c => c.value === claimValue);
 
-      const selectedTokens = new Set(
-        this.originalClaims.map(c => c.identity).filter((v): v is string => !!v)
-      );
-      this.selectedRoleIds.set(
-        this.allRoles.filter(r => selectedTokens.has(r.token)).map(r => r.id)
-      );
-      this.loaded.set(true);
-    } finally {
-      this.busyService.setBusy(this.loadKey, false);
-    }
-  }
+			const selectedTokens = new Set(
+				this.originalClaims.map(c => c.identity).filter((v): v is string => !!v)
+			);
+			this.selectedRoleIds.set(
+				this.allRoles.filter(r => selectedTokens.has(r.token)).map(r => r.id)
+			);
+			this.loaded.set(true);
+		} finally {
+			this.busyService.setBusy(this.loadKey, false);
+		}
+	}
 
-  pageActions = computed<ActionDescriptionWithAction[]>(() => [
-    CodeListActions.backAction(() => { this.navigationContext.back(); }),
-    {
-      label: $localize`:@@code-list.action.save:Save`,
-      description: $localize`:@@assignment.save-description:Save current state`,
-      icon: 'check_circle',
-      action: () => { this.save(); }
-    }
-  ]);
+	pageActions = computed<ActionDescriptionWithAction[]>(() => [
+		CodeListActions.backAction(() => { this.navigationContext.back(); }),
+		{
+			label: $localize`:@@code-list.action.save:Save`,
+			description: $localize`:@@assignment.save-description:Save current state`,
+			icon: 'check_circle',
+			action: () => { this.save(); }
+		}
+	]);
 
-  private async save() {
-    const claimValue = this.claimValue();
-    if (!claimValue) return;
+	private async save() {
+		const claimValue = this.claimValue();
+		if (!claimValue) return;
 
-    const originalTokens = new Set(
-      this.originalClaims.map(c => c.identity).filter((v): v is string => !!v)
-    );
-    const current = new Set(this.selectedRoleIds());
-    const currentRoles = this.allRoles.filter(r => current.has(r.id));
-    const currentTokens = new Set(currentRoles.map(r => r.token));
+		const originalTokens = new Set(
+			this.originalClaims.map(c => c.identity).filter((v): v is string => !!v)
+		);
+		const current = new Set(this.selectedRoleIds());
+		const currentRoles = this.allRoles.filter(r => current.has(r.id));
+		const currentTokens = new Set(currentRoles.map(r => r.token));
 
-    const toAdd = currentRoles.filter(r => !originalTokens.has(r.token));
-    const toRemove = this.originalClaims.filter(c => c.identity && !currentTokens.has(c.identity));
+		const toAdd = currentRoles.filter(r => !originalTokens.has(r.token));
+		const toRemove = this.originalClaims.filter(c => c.identity && !currentTokens.has(c.identity));
 
-    await firstValueFrom(
-      from(Promise.all([
-        ...toAdd.map(role =>
-          firstValueFrom(this.claimService.insert({
-            value: claimValue,
-            schema: 'role',
-            identity: role.token,
-            entity: CLAIM_UNDEFINED,
-            entityId: CLAIM_UNDEFINED
-          }))
-        ),
-        ...toRemove.map(c => firstValueFrom(this.claimService.delete({ id: c.id })))
-      ])).pipe(this.busyService.track(this.busyKey))
-    );
+		await firstValueFrom(
+			from(Promise.all([
+				...toAdd.map(role =>
+					firstValueFrom(this.claimService.insert({
+						value: claimValue,
+						schema: 'role',
+						identity: role.token,
+						entity: CLAIM_UNDEFINED,
+						entityId: CLAIM_UNDEFINED
+					}))
+				),
+				...toRemove.map(c => firstValueFrom(this.claimService.delete({ id: c.id })))
+			])).pipe(this.busyService.track(this.busyKey))
+		);
 
-    this.navigationContext.back();
-  }
+		this.navigationContext.back();
+	}
 }
