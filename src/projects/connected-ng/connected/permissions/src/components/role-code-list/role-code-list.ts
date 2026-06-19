@@ -135,6 +135,11 @@ export class RoleCodeList extends CodeListBase implements OnDestroy {
 		this.navigationContext.push(updatePage, childPage);
 	}
 
+	parentName(item: Role): string {
+		if (!item.parent) return '';
+		return this.items().find(r => r.id === item.parent)?.name ?? '';
+	}
+
 	statusLabel(status: number): string {
 		return this.statusLabels[status] ?? '';
 	}

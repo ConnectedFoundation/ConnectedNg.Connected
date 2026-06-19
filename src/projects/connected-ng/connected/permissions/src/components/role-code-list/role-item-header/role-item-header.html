@@ -6,13 +6,21 @@
 				[class.bg-info]="r.status === 1"
 				[class.bg-dark]="r.status === 2"
 			></div>
-			<div class="grid" style="--columns: 1">
+			<div class="grid" style="--columns: 2">
 				<div class="display-value">
 					<div class="list-item-label" i18n="@@cn.role-item-header.name">
 						Name
 					</div>
 					<div class="list-item-title">{{ r.name }}</div>
 				</div>
+				@if (parentName()) {
+					<div class="display-value">
+						<div class="list-item-label" i18n="@@cn.role-item-header.parent">
+							Parent role
+						</div>
+						<div class="list-item-value">{{ parentName() }}</div>
+					</div>
+				}
 			</div>
 		</div>
 		<mat-icon>arrow_drop_down</mat-icon>

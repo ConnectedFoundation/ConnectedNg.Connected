@@ -19,7 +19,7 @@
 </ng-template>
 
 <ng-template #viewTemplate let-item>
-	<div class="d-flex">
+    <div class="d-grid" style="grid-template-columns: auto 1fr;">
 		<div
 		class="status-dot"
 		[class.bg-info]="item.status === 1"
@@ -27,11 +27,21 @@
 		[matTooltip]="statusLabel(item.status)"
 		matTooltipPosition="right"
 		></div>
-		<div class="display-value">
-			<div class="list-item-label" i18n="@@cn.role-list.name-label">
-				Name
+        <div class="grid" style="--columns: 2">
+			<div class="display-value">
+				<div class="list-item-label" i18n="@@cn.role-list.name-label">
+					Name
+				</div>
+				<div class="list-item-title">{{ item.name }}</div>
 			</div>
-			<div class="list-item-title">{{ item.name }}</div>
+			@if (parentName(item)) {
+				<div class="display-value">
+					<div class="list-item-label" i18n="@@cn.role-list.parent-label">
+						Parent role
+					</div>
+					<div class="list-item-value">{{ parentName(item) }}</div>
+				</div>
+			}
 		</div>
 	</div>
 </ng-template>
