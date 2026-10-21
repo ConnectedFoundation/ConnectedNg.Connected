@@ -1,4 +1,4 @@
-import { Component, computed, inject, Injector, OnDestroy, signal } from '@angular/core';
+import { Component, computed, inject, Injector, input, OnDestroy, signal } from '@angular/core';
 import { routePattern } from '@connected-ng/core';
 import { CodeListActions, CodeListActionsComponent, CodeListBase, CodeListList, CodeListStackPageInfo } from '@connected-ng/components/code-lists'
 import { UserCodeListHeader } from './user-code-list-header/user-code-list-header';
@@ -18,7 +18,9 @@ import { UserUpdateFormFields } from './user-update-form/user-update-form-fields
 export class UserCodeList extends CodeListBase implements OnDestroy {
 	static readonly routePattern = routePattern('users');
 
-	static fromParams(injector: Injector): CodeListStackPageInfo {
+	static fromParams(injector: Injector, options?: { allowInsert?: boolean }): CodeListStackPageInfo {
+		const allowInsert = options?.allowInsert ?? true;
+
 		let insertForm = UserInsertForm.fromParams({}, injector);
 		insertForm.outputs = { formClose: POP_NAVIGATION };
 
@@ -30,14 +32,15 @@ export class UserCodeList extends CodeListBase implements OnDestroy {
 			headerComponent: UserCodeListHeader,
 			key: UserCodeList.routePattern.pattern,
 			icon: 'category',
-			data: {},
+			data: { allowInsert },
 			title: $localize`:@@cn.users.list-header:Users`,
-			childPages: [
-				insertForm,
-				updateForm
-			]
+			childPages: allowInsert
+				? [insertForm, updateForm]
+				: [updateForm]
 		};
 	}
+
+	allowInsert = input(true);
 
 	userService = inject(UserService);
 	private childPageProvider = inject(ChildPageProviderService, { optional: true });
@@ -78,13 +81,6 @@ export class UserCodeList extends CodeListBase implements OnDestroy {
 		];
 	}
 
-	override codeListActions = signal([
-		CodeListActions.insertItemAction(
-			() => this.navigateToInsert(),
-			`${this.navigationContext.getUrlFromStack()}/${UserInsertForm.routePattern.pattern}`
-		)
-	]);
-
 	navigateToInsert() {
 		const insertPage = UserInsertForm.fromParams({}, this.injector);
 		insertPage.outputs = { formClose: () => this.navigationContext.back() };
@@ -92,6 +88,15 @@ export class UserCodeList extends CodeListBase implements OnDestroy {
 	}
 
 	override ngOnInit() {
+		if (this.allowInsert()) {
+			this.codeListActions.set([
+				CodeListActions.insertItemAction(
+					() => this.navigateToInsert(),
+					`${this.navigationContext.getUrlFromStack()}/${UserInsertForm.routePattern.pattern}`
+				)
+			]);
+		}
+
 		super.ngOnInit();
 
 		this.subscriptions.add(
