@@ -122,16 +122,14 @@ describe('ClaimAuthorizationStructuralDirective', () => {
 			expect(query<HTMLTextAreaElement>(fixture, 'textarea')!.disabled).toBeFalse();
 		});
 
-		it('renders locked content inert, with the locked classes and disabled native controls', async () => {
+		it('renders locked content inert with the locked class and leaves everything else to the application', async () => {
 			const fixture = await create(false);
 			const root = query(fixture, 'root')!;
 
 			expect(root.inert).toBeTrue();
-			expect(root.classList).toContain('claim-locked');
-			expect(root.classList).toContain('disabled');
-			expect(root.classList).toContain('read-only');
-			expect(query<HTMLButtonElement>(fixture, 'button')!.disabled).toBeTrue();
-			expect(query<HTMLTextAreaElement>(fixture, 'textarea')!.disabled).toBeTrue();
+			expect(root.className.split(' ').sort()).toEqual(['claim-locked', 'own']);
+			expect(query<HTMLButtonElement>(fixture, 'button')!.disabled).toBeFalse();
+			expect(query<HTMLTextAreaElement>(fixture, 'textarea')!.disabled).toBeFalse();
 		});
 
 		it('keeps locked content out of focus', async () => {
@@ -168,8 +166,46 @@ describe('ClaimAuthorizationStructuralDirective', () => {
 
 			expect(root.classList).toContain('read-only');
 			expect(root.classList).not.toContain('claim-locked');
-			expect(root.classList).not.toContain('disabled');
 			expect(query<HTMLButtonElement>(fixture, 'app-disabled')!.disabled).toBeTrue();
+		});
+
+		it('keeps the classes and disabled controls the application set while locked', async () => {
+			const fixture = await create(false);
+			const root = query(fixture, 'root')!;
+			const textarea = query<HTMLTextAreaElement>(fixture, 'textarea')!;
+			root.classList.add('read-only');
+			textarea.disabled = true;
+
+			claims.claims.set([CLAIM]);
+			await settle(fixture);
+
+			expect(root.classList).toContain('read-only');
+			expect(textarea.disabled).toBeTrue();
+		});
+
+		it('keeps a locked class the application set itself', async () => {
+			const fixture = await create(true);
+			const root = query(fixture, 'root')!;
+			root.classList.add('claim-locked');
+
+			claims.claims.set([]);
+			await settle(fixture);
+			claims.claims.set([CLAIM]);
+			await settle(fixture);
+
+			expect(root.classList).toContain('claim-locked');
+		});
+
+		it('unlocks a kept view when the mode switches to hide', async () => {
+			const fixture = await create(false);
+
+			claims.claims.set([CLAIM]);
+			fixture.componentInstance.mode.set('hide');
+			await settle(fixture);
+
+			const root = query(fixture, 'root')!;
+			expect(root.inert).toBeFalse();
+			expect(root.classList).not.toContain('claim-locked');
 		});
 
 		it('keeps an inert the application set before locking', async () => {
@@ -210,7 +246,6 @@ describe('ClaimAuthorizationStructuralDirective', () => {
 
 			const late = query<HTMLButtonElement>(fixture, 'late')!;
 			expect(late.inert).toBeTrue();
-			expect(late.disabled).toBeTrue();
 			expect(late.classList).toContain('claim-locked');
 		});
 

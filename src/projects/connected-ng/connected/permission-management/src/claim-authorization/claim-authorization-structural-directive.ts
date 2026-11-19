@@ -1,6 +1,8 @@
 import {
+	AfterRenderRef,
 	Directive,
 	EmbeddedViewRef,
+	Injector,
 	OnDestroy,
 	TemplateRef,
 	ViewContainerRef,
@@ -8,6 +10,7 @@ import {
 	effect,
 	inject,
 	input,
+	untracked,
 } from '@angular/core';
 import { ClaimStorageService } from '@connected-ng/core/authentication';
 
@@ -18,18 +21,14 @@ export interface ClaimRequirement {
 	entityId?: string;
 }
 
-const LOCKED_CLASSES = ['claim-locked', 'disabled', 'read-only'];
-const NATIVE_CONTROLS = 'button, input, select, textarea';
-
-type NativeControl = HTMLButtonElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+const LOCKED_CLASS = 'claim-locked';
 
 /*
- * What locking changed on a root node, so unlocking reverts exactly that and leaves the state the application set
- * itself (its own classes, controls it disabled, an inert it set) alone.
+ * What locking changed on a root node, so unlocking reverts exactly that: the class only when the node did not have
+ * it, and inert back to the value it had.
  */
 interface LockedNode {
-	addedClasses: string[];
-	disabledControls: NativeControl[];
+	addedClass: boolean;
 	wasInert: boolean;
 }
 
@@ -47,11 +46,12 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 	private readonly claimStorage = inject(ClaimStorageService);
 	private readonly tpl = inject(TemplateRef<unknown>);
 	private readonly vcr = inject(ViewContainerRef);
+	private readonly injector = inject(Injector);
 
 	private embeddedView: EmbeddedViewRef<unknown> | null = null;
 	private wasLocked: boolean | null = null;
-	private locked = false;
 	private readonly lockedNodes = new Map<HTMLElement, LockedNode>();
+	private renderHook: AfterRenderRef | null = null;
 
 	constructor() {
 		effect(() => {
@@ -63,15 +63,10 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 
 			this.apply(unlocked);
 		});
-
-		// Root nodes rendered after the lock was applied, such as control flow at the root of the template, are locked too.
-		afterEveryRender(() => {
-			if (this.locked)
-				this.lockRootNodes();
-		});
 	}
 
 	ngOnDestroy(): void {
+		this.stopRenderHook();
 		this.lockedNodes.clear();
 		this.vcr.clear();
 		this.embeddedView = null;
@@ -84,8 +79,8 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 		this.wasLocked = isLocked;
 
 		if (mode === 'hide') {
-			this.locked = false;
-			this.lockedNodes.clear();
+			// Coming from disable mode, a kept view must not stay locked.
+			this.unlock();
 
 			if (unlocked && !this.embeddedView) {
 				this.embeddedView = this.vcr.createEmbeddedView(this.tpl);
@@ -100,12 +95,10 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 				this.embeddedView.detectChanges();
 			}
 
-			this.locked = isLocked;
-
 			if (isLocked)
-				this.lockRootNodes();
+				this.lock();
 			else
-				this.unlockRootNodes();
+				this.unlock();
 		}
 
 		if (stateChanged) {
@@ -114,42 +107,52 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 		}
 	}
 
+	/*
+	 * inert blocks every pointer and keyboard interaction and takes the whole subtree out of the tab order, also for
+	 * descendants that switch pointer events back on (Material list item lines do) and for descendants rendered later.
+	 * The class only gives the locked look; the directive writes nothing else, so bindings and forms keep their state.
+	 */
+	private lock(): void {
+		this.lockRootNodes();
+
+		// Root nodes rendered after locking, such as control flow at the root of the template, are locked too.
+		// Registered outside the reactive context of the claims effect, which Angular requires for render hooks.
+		this.renderHook ??= untracked(() => afterEveryRender(() => this.lockRootNodes(), { injector: this.injector }));
+	}
+
 	private lockRootNodes(): void {
 		if (!this.embeddedView) return;
 
+		// Root nodes that control flow removed are no longer kept.
+		for (const node of this.lockedNodes.keys()) {
+			if (!node.isConnected)
+				this.lockedNodes.delete(node);
+		}
+
 		for (const node of this.embeddedView.rootNodes as Node[]) {
-			if (node instanceof HTMLElement && !this.lockedNodes.has(node))
-				this.lockedNodes.set(node, this.lockNode(node));
+			if (!(node instanceof HTMLElement) || this.lockedNodes.has(node)) continue;
+
+			const addedClass = !node.classList.contains(LOCKED_CLASS);
+			if (addedClass) node.classList.add(LOCKED_CLASS);
+
+			this.lockedNodes.set(node, { addedClass, wasInert: node.inert });
+			node.inert = true;
 		}
 	}
 
-	/*
-	 * The classes give the locked look. inert is what actually locks the content: CSS pointer-events can be switched
-	 * back on by descendants (Material list item lines do) and do not stop the keyboard, while inert blocks every
-	 * pointer and keyboard interaction and takes the whole subtree out of the tab order. Native controls are disabled as
-	 * well so they look disabled.
-	 */
-	private lockNode(node: HTMLElement): LockedNode {
-		const addedClasses = LOCKED_CLASSES.filter(c => !node.classList.contains(c));
-		node.classList.add(...addedClasses);
+	private unlock(): void {
+		this.stopRenderHook();
 
-		const disabledControls = [node, ...Array.from(node.querySelectorAll<HTMLElement>(NATIVE_CONTROLS))]
-			.filter((el): el is NativeControl => el.matches(NATIVE_CONTROLS) && !(el as NativeControl).disabled);
-		disabledControls.forEach(el => el.disabled = true);
-
-		const wasInert = node.inert;
-		node.inert = true;
-
-		return { addedClasses, disabledControls, wasInert };
-	}
-
-	private unlockRootNodes(): void {
 		for (const [node, locked] of this.lockedNodes) {
-			node.classList.remove(...locked.addedClasses);
-			locked.disabledControls.forEach(el => el.disabled = false);
+			if (locked.addedClass) node.classList.remove(LOCKED_CLASS);
 			node.inert = locked.wasInert;
 		}
 
 		this.lockedNodes.clear();
+	}
+
+	private stopRenderHook(): void {
+		this.renderHook?.destroy();
+		this.renderHook = null;
 	}
 }
