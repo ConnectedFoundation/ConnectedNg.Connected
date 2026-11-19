@@ -34,6 +34,8 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 
 	private embeddedView: EmbeddedViewRef<unknown> | null = null;
 	private wasLocked: boolean | null = null;
+	// Locked nodes with the tabindex they had before locking.
+	private readonly blockedNodes = new Map<HTMLElement, string | null>();
 
 	constructor() {
 		effect(() => {
@@ -48,6 +50,7 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 	}
 
 	ngOnDestroy(): void {
+		[...this.blockedNodes.keys()].forEach(node => this.unblockInteraction(node));
 		this.vcr.clear();
 		this.embeddedView = null;
 	}
@@ -95,5 +98,55 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 		const interactive = 'button, input, select, textarea';
 		if (node.matches?.(interactive)) (node as HTMLInputElement).disabled = disabled;
 		node.querySelectorAll?.<HTMLInputElement>(interactive).forEach(el => el.disabled = disabled);
+
+		if (disabled)
+			this.blockInteraction(node);
+		else
+			this.unblockInteraction(node);
 	}
+
+	/*
+	 * The locked classes only switch pointer events off with CSS, which descendants can switch back on (Material list
+	 * items do for their lines), and keyboard activation is not affected at all. Listeners in the capture phase stop
+	 * the activating events before any handler inside the element sees them.
+	 */
+	private blockInteraction(node: HTMLElement): void {
+		if (this.blockedNodes.has(node)) return;
+
+		this.blockedNodes.set(node, node.getAttribute('tabindex'));
+
+		for (const type of BLOCKED_EVENTS)
+			node.addEventListener(type, blockEvent, true);
+
+		node.setAttribute('aria-disabled', 'true');
+		node.setAttribute('tabindex', '-1');
+	}
+
+	private unblockInteraction(node: HTMLElement): void {
+		if (!this.blockedNodes.has(node)) return;
+
+		const tabIndex = this.blockedNodes.get(node);
+		this.blockedNodes.delete(node);
+
+		for (const type of BLOCKED_EVENTS)
+			node.removeEventListener(type, blockEvent, true);
+
+		node.removeAttribute('aria-disabled');
+
+		if (tabIndex === null || tabIndex === undefined)
+			node.removeAttribute('tabindex');
+		else
+			node.setAttribute('tabindex', tabIndex);
+	}
+}
+
+const BLOCKED_EVENTS = ['click', 'dblclick', 'auxclick', 'pointerdown', 'mousedown', 'keydown'] as const;
+
+function blockEvent(event: Event): void {
+	// Only the keys that activate an element; Tab and the others keep moving focus past the locked content.
+	if (event instanceof KeyboardEvent && event.key !== 'Enter' && event.key !== ' ')
+		return;
+
+	event.preventDefault();
+	event.stopImmediatePropagation();
 }
