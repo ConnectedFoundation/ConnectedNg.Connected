@@ -4,6 +4,7 @@ import {
 	OnDestroy,
 	TemplateRef,
 	ViewContainerRef,
+	afterEveryRender,
 	effect,
 	inject,
 	input,
@@ -15,6 +16,21 @@ export interface ClaimRequirement {
 	schema?: string;
 	entity?: string;
 	entityId?: string;
+}
+
+const LOCKED_CLASSES = ['claim-locked', 'disabled', 'read-only'];
+const NATIVE_CONTROLS = 'button, input, select, textarea';
+
+type NativeControl = HTMLButtonElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+/*
+ * What locking changed on a root node, so unlocking reverts exactly that and leaves the state the application set
+ * itself (its own classes, controls it disabled, an inert it set) alone.
+ */
+interface LockedNode {
+	addedClasses: string[];
+	disabledControls: NativeControl[];
+	wasInert: boolean;
 }
 
 @Directive({
@@ -34,8 +50,8 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 
 	private embeddedView: EmbeddedViewRef<unknown> | null = null;
 	private wasLocked: boolean | null = null;
-	// Locked nodes with the tabindex they had before locking.
-	private readonly blockedNodes = new Map<HTMLElement, string | null>();
+	private locked = false;
+	private readonly lockedNodes = new Map<HTMLElement, LockedNode>();
 
 	constructor() {
 		effect(() => {
@@ -47,10 +63,16 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 
 			this.apply(unlocked);
 		});
+
+		// Root nodes rendered after the lock was applied, such as control flow at the root of the template, are locked too.
+		afterEveryRender(() => {
+			if (this.locked)
+				this.lockRootNodes();
+		});
 	}
 
 	ngOnDestroy(): void {
-		[...this.blockedNodes.keys()].forEach(node => this.unblockInteraction(node));
+		this.lockedNodes.clear();
 		this.vcr.clear();
 		this.embeddedView = null;
 	}
@@ -62,6 +84,9 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 		this.wasLocked = isLocked;
 
 		if (mode === 'hide') {
+			this.locked = false;
+			this.lockedNodes.clear();
+
 			if (unlocked && !this.embeddedView) {
 				this.embeddedView = this.vcr.createEmbeddedView(this.tpl);
 				this.embeddedView.detectChanges();
@@ -74,7 +99,13 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 				this.embeddedView = this.vcr.createEmbeddedView(this.tpl);
 				this.embeddedView.detectChanges();
 			}
-			this.setDisabled(isLocked);
+
+			this.locked = isLocked;
+
+			if (isLocked)
+				this.lockRootNodes();
+			else
+				this.unlockRootNodes();
 		}
 
 		if (stateChanged) {
@@ -83,70 +114,42 @@ export class ClaimAuthorizationStructuralDirective implements OnDestroy {
 		}
 	}
 
-	private setDisabled(disabled: boolean): void {
+	private lockRootNodes(): void {
 		if (!this.embeddedView) return;
-		(this.embeddedView.rootNodes as HTMLElement[]).forEach(node => this.applyDisabledToNode(node, disabled));
-	}
 
-	private applyDisabledToNode(node: HTMLElement, disabled: boolean): void {
-		if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
-
-		node.classList.toggle('claim-locked', disabled);
-		node.classList.toggle('disabled', disabled);
-		node.classList.toggle('read-only', disabled);
-
-		const interactive = 'button, input, select, textarea';
-		if (node.matches?.(interactive)) (node as HTMLInputElement).disabled = disabled;
-		node.querySelectorAll?.<HTMLInputElement>(interactive).forEach(el => el.disabled = disabled);
-
-		if (disabled)
-			this.blockInteraction(node);
-		else
-			this.unblockInteraction(node);
+		for (const node of this.embeddedView.rootNodes as Node[]) {
+			if (node instanceof HTMLElement && !this.lockedNodes.has(node))
+				this.lockedNodes.set(node, this.lockNode(node));
+		}
 	}
 
 	/*
-	 * The locked classes only switch pointer events off with CSS, which descendants can switch back on (Material list
-	 * items do for their lines), and keyboard activation is not affected at all. Listeners in the capture phase stop
-	 * the activating events before any handler inside the element sees them.
+	 * The classes give the locked look. inert is what actually locks the content: CSS pointer-events can be switched
+	 * back on by descendants (Material list item lines do) and do not stop the keyboard, while inert blocks every
+	 * pointer and keyboard interaction and takes the whole subtree out of the tab order. Native controls are disabled as
+	 * well so they look disabled.
 	 */
-	private blockInteraction(node: HTMLElement): void {
-		if (this.blockedNodes.has(node)) return;
+	private lockNode(node: HTMLElement): LockedNode {
+		const addedClasses = LOCKED_CLASSES.filter(c => !node.classList.contains(c));
+		node.classList.add(...addedClasses);
 
-		this.blockedNodes.set(node, node.getAttribute('tabindex'));
+		const disabledControls = [node, ...Array.from(node.querySelectorAll<HTMLElement>(NATIVE_CONTROLS))]
+			.filter((el): el is NativeControl => el.matches(NATIVE_CONTROLS) && !(el as NativeControl).disabled);
+		disabledControls.forEach(el => el.disabled = true);
 
-		for (const type of BLOCKED_EVENTS)
-			node.addEventListener(type, blockEvent, true);
+		const wasInert = node.inert;
+		node.inert = true;
 
-		node.setAttribute('aria-disabled', 'true');
-		node.setAttribute('tabindex', '-1');
+		return { addedClasses, disabledControls, wasInert };
 	}
 
-	private unblockInteraction(node: HTMLElement): void {
-		if (!this.blockedNodes.has(node)) return;
+	private unlockRootNodes(): void {
+		for (const [node, locked] of this.lockedNodes) {
+			node.classList.remove(...locked.addedClasses);
+			locked.disabledControls.forEach(el => el.disabled = false);
+			node.inert = locked.wasInert;
+		}
 
-		const tabIndex = this.blockedNodes.get(node);
-		this.blockedNodes.delete(node);
-
-		for (const type of BLOCKED_EVENTS)
-			node.removeEventListener(type, blockEvent, true);
-
-		node.removeAttribute('aria-disabled');
-
-		if (tabIndex === null || tabIndex === undefined)
-			node.removeAttribute('tabindex');
-		else
-			node.setAttribute('tabindex', tabIndex);
+		this.lockedNodes.clear();
 	}
-}
-
-const BLOCKED_EVENTS = ['click', 'dblclick', 'auxclick', 'pointerdown', 'mousedown', 'keydown'] as const;
-
-function blockEvent(event: Event): void {
-	// Only the keys that activate an element; Tab and the others keep moving focus past the locked content.
-	if (event instanceof KeyboardEvent && event.key !== 'Enter' && event.key !== ' ')
-		return;
-
-	event.preventDefault();
-	event.stopImmediatePropagation();
 }
