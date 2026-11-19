@@ -53,6 +53,46 @@ class LateRootHostComponent {
 	readonly showLate = signal(false);
 }
 
+const OUTER = 'Outer Claim';
+const INNER = 'Inner Claim';
+
+@Component({
+	imports: [ClaimAuthorizationStructuralDirective],
+	template: `
+		<ng-container *claimAuthorization="outer; mode: 'disable'">
+			<button *claimAuthorization="inner; mode: 'disable'" id="nested">Save</button>
+		</ng-container>
+	`,
+})
+class NestedHostComponent {
+	readonly outer: ClaimRequirement[] = [{ value: OUTER }];
+	readonly inner: ClaimRequirement[] = [{ value: INNER }];
+}
+
+@Component({
+	imports: [ClaimAuthorizationStructuralDirective],
+	template: `
+		<div *claimAuthorization="requirements; mode: 'disable'" id="bound" [inert]="appInert()"></div>
+	`,
+})
+class InertBindingHostComponent {
+	readonly requirements: ClaimRequirement[] = [{ value: CLAIM }];
+	readonly appInert = signal(false);
+}
+
+@Component({
+	imports: [ClaimAuthorizationStructuralDirective],
+	template: `
+		<form id="form">
+			<input id="query" name="query">
+			<button *claimAuthorization="requirements; mode: 'disable'" id="submit" type="submit">Save</button>
+		</form>
+	`,
+})
+class FormHostComponent {
+	readonly requirements: ClaimRequirement[] = [{ value: CLAIM }];
+}
+
 describe('ClaimAuthorizationStructuralDirective', () => {
 	let claims: FakeClaimStorage;
 
@@ -122,14 +162,14 @@ describe('ClaimAuthorizationStructuralDirective', () => {
 			expect(query<HTMLTextAreaElement>(fixture, 'textarea')!.disabled).toBeFalse();
 		});
 
-		it('renders locked content inert with the locked class and leaves everything else to the application', async () => {
+		it('renders locked content inert with the locked class and disabled native controls', async () => {
 			const fixture = await create(false);
 			const root = query(fixture, 'root')!;
 
 			expect(root.inert).toBeTrue();
 			expect(root.className.split(' ').sort()).toEqual(['claim-locked', 'own']);
-			expect(query<HTMLButtonElement>(fixture, 'button')!.disabled).toBeFalse();
-			expect(query<HTMLTextAreaElement>(fixture, 'textarea')!.disabled).toBeFalse();
+			expect(query<HTMLButtonElement>(fixture, 'button')!.disabled).toBeTrue();
+			expect(query<HTMLTextAreaElement>(fixture, 'textarea')!.disabled).toBeTrue();
 		});
 
 		it('keeps locked content out of focus', async () => {
@@ -169,18 +209,85 @@ describe('ClaimAuthorizationStructuralDirective', () => {
 			expect(query<HTMLButtonElement>(fixture, 'app-disabled')!.disabled).toBeTrue();
 		});
 
-		it('keeps the classes and disabled controls the application set while locked', async () => {
+		it('keeps the classes the application set while locked', async () => {
 			const fixture = await create(false);
 			const root = query(fixture, 'root')!;
-			const textarea = query<HTMLTextAreaElement>(fixture, 'textarea')!;
 			root.classList.add('read-only');
-			textarea.disabled = true;
 
 			claims.claims.set([CLAIM]);
 			await settle(fixture);
 
 			expect(root.classList).toContain('read-only');
-			expect(textarea.disabled).toBeTrue();
+		});
+
+		it('locks again when an inert binding clears inert while locked', async () => {
+			claims.claims.set([]);
+			const fixture = TestBed.createComponent(InertBindingHostComponent);
+			await settle(fixture);
+			const bound = query(fixture, 'bound')!;
+
+			fixture.componentInstance.appInert.set(true);
+			await settle(fixture);
+			fixture.componentInstance.appInert.set(false);
+			await settle(fixture);
+
+			expect(bound.inert).toBeTrue();
+		});
+
+		it('unlocks a root that was detached and attached again while locked', async () => {
+			const fixture = await create(false);
+			const root = query(fixture, 'root')!;
+			const parent = root.parentNode!;
+			const next = root.nextSibling;
+
+			// A render while the root is detached, as when a cached view is out of the document.
+			root.remove();
+			fixture.componentInstance.checks.set([]);
+			await settle(fixture);
+			parent.insertBefore(root, next);
+			await settle(fixture);
+
+			claims.claims.set([CLAIM]);
+			await settle(fixture);
+
+			expect(root.inert).toBeFalse();
+			expect(root.classList).not.toContain('claim-locked');
+			expect(query<HTMLButtonElement>(fixture, 'button')!.disabled).toBeFalse();
+		});
+
+		it('keeps nested content locked until both locks are released', async () => {
+			claims.claims.set([]);
+			const fixture = TestBed.createComponent(NestedHostComponent);
+			await settle(fixture);
+			const button = query<HTMLButtonElement>(fixture, 'nested')!;
+			expect(button.inert).toBeTrue();
+
+			claims.claims.set([OUTER]);
+			await settle(fixture);
+			expect(button.inert).toBeTrue();
+			expect(button.disabled).toBeTrue();
+			expect(button.classList).toContain('claim-locked');
+
+			claims.claims.set([OUTER, INNER]);
+			await settle(fixture);
+			expect(button.inert).toBeFalse();
+			expect(button.disabled).toBeFalse();
+			expect(button.classList).not.toContain('claim-locked');
+		});
+
+		it('disables a locked submit button, so implicit form submission cannot use it', async () => {
+			claims.claims.set([]);
+			const fixture = TestBed.createComponent(FormHostComponent);
+			await settle(fixture);
+			const submit = query<HTMLButtonElement>(fixture, 'submit')!;
+
+			// A disabled default button makes implicit submission (Enter in a field) do nothing.
+			expect(submit.disabled).toBeTrue();
+
+			claims.claims.set([CLAIM]);
+			await settle(fixture);
+
+			expect(submit.disabled).toBeFalse();
 		});
 
 		it('keeps a locked class the application set itself', async () => {
@@ -246,6 +353,7 @@ describe('ClaimAuthorizationStructuralDirective', () => {
 
 			const late = query<HTMLButtonElement>(fixture, 'late')!;
 			expect(late.inert).toBeTrue();
+			expect(late.disabled).toBeTrue();
 			expect(late.classList).toContain('claim-locked');
 		});
 
